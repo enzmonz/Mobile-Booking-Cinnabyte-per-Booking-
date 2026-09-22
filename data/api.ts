@@ -16,9 +16,13 @@ import {
   searchServices,
 } from '@/data/mockServices';
 import {
+  CalendarMonth,
   formatIsoDateLong,
+  formatIsoDateShort,
+  formatRelativeDay,
   getAvailableDates,
   getAvailableTimeSlots,
+  getCalendarMonth,
 } from '@/data/mockAvailability';
 import { Category, DateOption, Service, TimeSlot } from '@/types';
 
@@ -67,4 +71,8 @@ export function fetchAvailableTimeSlots(isoDate: string): TimeSlot[] {
   return getAvailableTimeSlots(isoDate);
 }
 
-export { formatIsoDateLong };
+export function fetchCalendarMonth(isoDate: string): CalendarMonth {
+  return getCalendarMonth(isoDate);
+}
+
+export { formatIsoDateLong, formatIsoDateShort, formatRelativeDay };

@@ -1,19 +1,29 @@
-// Central color palette for the whole app.
-// Change a value here and it updates everywhere it's used.
+// CINNABYTE visual identity: warm neutral editorial palette with a
+// restrained green accent. Keep usage mostly neutral (~85-90%) — the
+// accent is reserved for primary actions and selected/active states.
 export const Colors = {
-  primary: '#2563EB',
-  primaryLight: '#DBEAFE',
-  background: '#F8FAFC',
+  background: '#F5F4EF',
   surface: '#FFFFFF',
-  text: '#0F172A',
-  textSecondary: '#64748B',
-  success: '#16A34A',
-  successLight: '#DCFCE7',
-  error: '#DC2626',
-  errorLight: '#FEE2E2',
-  warning: '#D97706',
-  warningLight: '#FEF3C7',
-  border: '#E2E8F0',
+  surfaceMuted: '#EFEEE7',
+
+  text: '#151515',
+  textSecondary: '#6B6B65',
+  textMuted: '#92928B',
+
+  border: '#DCDCD5',
+  borderStrong: '#C7C7BE',
+
+  dark: '#171816',
+
+  accent: '#A8C76A',
+  accentDark: '#718A42',
+  onAccent: '#151515',
+
+  success: '#5F8A4B',
+  successBg: '#E9F0E1',
+  error: '#B85C5C',
+  errorBg: '#F5E6E4',
+
   white: '#FFFFFF',
   black: '#000000',
 };

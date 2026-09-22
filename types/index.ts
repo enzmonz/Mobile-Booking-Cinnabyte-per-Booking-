@@ -5,20 +5,20 @@
 export interface Category {
   id: string;
   name: string;
-  icon: string; // emoji used as a simple icon
+  icon: string; // Ionicons name, e.g. "cut-outline"
 }
 
 export interface Service {
   id: string;
   categoryId: string;
+  eyebrow: string; // short uppercase tag shown above the title, e.g. "HAIR CARE"
   name: string;
   description: string;
   price: number;
   duration: string; // human readable, e.g. "1 hour"
   provider: string;
   location: string;
-  icon: string; // emoji used as an image placeholder
-  color: string; // background color for the image placeholder
+  icon: string; // Ionicons name used in the image placeholder
   rating: number;
   popular: boolean;
   featured: boolean;
@@ -31,7 +31,6 @@ export interface Booking {
   serviceId: string;
   serviceName: string;
   serviceIcon: string;
-  serviceColor: string;
   provider: string;
   location: string;
   price: number;

@@ -1,31 +1,22 @@
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CustomButton from '@/components/CustomButton';
+import Header from '@/components/Header';
+import StatusBadge from '@/components/StatusBadge';
 import Colors from '@/constants/colors';
+import { FontFamily, Typography } from '@/constants/typography';
+import { Spacing, ScreenPadding } from '@/constants/spacing';
 import { formatIsoDateLong } from '@/data/api';
 import { useBookings } from '@/context/BookingsContext';
-import { BookingStatus } from '@/types';
 
-const STATUS_LABELS: Record<BookingStatus, string> = {
-  upcoming: 'Confirmed',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-};
-
-const STATUS_COLORS: Record<BookingStatus, string> = {
-  upcoming: Colors.primary,
-  completed: Colors.success,
-  cancelled: Colors.error,
-};
-
-function DetailRow({ label, value }: { label: string; value: string }) {
+function DetailField({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <Text style={styles.fieldValue}>{value}</Text>
     </View>
   );
 }
@@ -38,6 +29,7 @@ export default function BookingDetailsScreen() {
   if (!booking) {
     return (
       <SafeAreaView style={styles.safeArea}>
+        <Header title="Booking" />
         <View style={styles.notFound}>
           <Text style={styles.notFoundText}>Booking not found.</Text>
         </View>
@@ -47,12 +39,12 @@ export default function BookingDetailsScreen() {
 
   const handleCancel = () => {
     Alert.alert(
-      'Cancel Booking',
+      'Cancel booking',
       'Are you sure you want to cancel this booking?',
       [
         { text: 'No', style: 'cancel' },
         {
-          text: 'Yes, Cancel',
+          text: 'Yes, cancel',
           style: 'destructive',
           onPress: () => cancelBooking(booking.id),
         },
@@ -62,44 +54,31 @@ export default function BookingDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      <Header title="Booking details" />
+
       <ScrollView contentContainerStyle={styles.content}>
-        <View
-          style={[styles.image, { backgroundColor: booking.serviceColor }]}
-        >
-          <Text style={styles.icon}>{booking.serviceIcon}</Text>
-        </View>
+        <StatusBadge status={booking.status} />
 
-        <View style={styles.headerRow}>
-          <Text style={styles.serviceName}>{booking.serviceName}</Text>
-          <View
-            style={[
-              styles.badge,
-              { backgroundColor: `${STATUS_COLORS[booking.status]}1A` },
-            ]}
-          >
-            <Text
-              style={[styles.badgeText, { color: STATUS_COLORS[booking.status] }]}
-            >
-              {STATUS_LABELS[booking.status]}
-            </Text>
-          </View>
-        </View>
+        <Text style={styles.serviceName}>{booking.serviceName}</Text>
 
-        <View style={styles.card}>
-          <DetailRow label="Provider" value={booking.provider} />
-          <DetailRow label="Date" value={formatIsoDateLong(booking.date)} />
-          <DetailRow label="Time" value={booking.time} />
-          <DetailRow label="Duration" value={booking.duration} />
-          <DetailRow label="Location" value={booking.location} />
-          <DetailRow label="Price" value={`₱${booking.price}`} />
-          <DetailRow label="Booking ID" value={booking.id} />
-        </View>
+        <DetailField
+          label="Date & time"
+          value={`${formatIsoDateLong(booking.date)} · ${booking.time}`}
+        />
+        <DetailField label="Provider" value={booking.provider} />
+        <DetailField label="Location" value={booking.location} />
+        <DetailField label="Duration" value={booking.duration} />
+
+        <View style={styles.divider} />
+
+        <DetailField label="Booking ID" value={booking.id} />
+        <DetailField label="Total" value={`₱${booking.price}`} />
       </ScrollView>
 
       {booking.status === 'upcoming' && (
         <View style={styles.footer}>
           <CustomButton
-            title="Cancel Booking"
+            title="Cancel booking"
             variant="danger"
             onPress={handleCancel}
           />
@@ -115,63 +94,36 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   content: {
-    padding: 20,
-  },
-  image: {
-    height: 160,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 18,
-  },
-  icon: {
-    fontSize: 56,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
+    paddingHorizontal: ScreenPadding,
+    paddingBottom: Spacing.xl,
   },
   serviceName: {
-    fontSize: 22,
-    fontWeight: '800',
+    ...Typography.sectionHeading,
+    fontSize: 24,
     color: Colors.text,
-    flexShrink: 1,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.xxl,
   },
-  badge: {
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  field: {
+    marginBottom: Spacing.xl,
   },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '700',
+  fieldLabel: {
+    ...Typography.eyebrow,
+    color: Colors.textMuted,
   },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 18,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-  },
-  rowLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  rowValue: {
-    fontSize: 15,
-    fontWeight: '600',
+  fieldValue: {
+    fontFamily: FontFamily.semibold,
+    fontSize: 16,
     color: Colors.text,
+    marginTop: 4,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginBottom: Spacing.xl,
   },
   footer: {
-    padding: 20,
+    padding: ScreenPadding,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     backgroundColor: Colors.background,
@@ -182,7 +134,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   notFoundText: {
-    fontSize: 16,
+    ...Typography.body,
     color: Colors.textSecondary,
   },
 });

@@ -1,7 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 
 import Colors from '@/constants/colors';
+import { FontFamily } from '@/constants/typography';
+import { Radius } from '@/constants/radius';
 
 interface TimeSlotProps {
   time: string;
@@ -17,15 +19,15 @@ export default function TimeSlot({
   onPress,
 }: TimeSlotProps) {
   return (
-    <TouchableOpacity
-      style={[
+    <Pressable
+      style={({ pressed }) => [
         styles.slot,
         selected && styles.selectedSlot,
         !available && styles.disabledSlot,
+        pressed && available && styles.pressedSlot,
       ]}
       onPress={onPress}
       disabled={!available}
-      activeOpacity={0.8}
     >
       <Text
         style={[
@@ -36,7 +38,7 @@ export default function TimeSlot({
       >
         {time}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -44,31 +46,35 @@ const styles = StyleSheet.create({
   slot: {
     flexBasis: '48%',
     height: 50,
-    borderRadius: 12,
+    borderRadius: Radius.button,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.surface,
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: Colors.border,
   },
   selectedSlot: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
   },
   disabledSlot: {
     backgroundColor: Colors.background,
     borderColor: Colors.border,
   },
+  pressedSlot: {
+    opacity: 0.75,
+  },
   text: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontFamily: FontFamily.medium,
+    fontSize: 14.5,
     color: Colors.text,
   },
   selectedText: {
-    color: Colors.white,
+    fontFamily: FontFamily.semibold,
+    color: Colors.onAccent,
   },
   disabledText: {
-    color: Colors.textSecondary,
+    color: Colors.textMuted,
     textDecorationLine: 'line-through',
   },
 });

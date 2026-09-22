@@ -80,3 +80,66 @@ export function formatIsoDateLong(isoDate: string): string {
   const date = new Date(year, month - 1, day);
   return `${MONTH_NAMES[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
+
+export function formatIsoDateShort(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return `${MONTH_NAMES[date.getMonth()].slice(0, 3)} ${date.getDate()}`;
+}
+
+// "Today" / "Tomorrow" when applicable, otherwise the short date.
+export function formatRelativeDay(isoDate: string): string {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  if (isoDate === toIsoDate(today)) return 'Today';
+  if (isoDate === toIsoDate(tomorrow)) return 'Tomorrow';
+  return formatIsoDateShort(isoDate);
+}
+
+export interface CalendarDay {
+  isoDate: string;
+  day: number;
+}
+
+export interface CalendarMonth {
+  label: string; // "September 2026"
+  weekdayHeaders: string[]; // Monday-first, single letter
+  weeks: (CalendarDay | null)[][];
+}
+
+// Builds a Monday-first month grid for the month containing `isoDate`.
+export function getCalendarMonth(isoDate: string): CalendarMonth {
+  const [year, month] = isoDate.split('-').map(Number);
+  const firstOfMonth = new Date(year, month - 1, 1);
+  const daysInMonth = new Date(year, month, 0).getDate();
+
+  // Monday-first weekday index (0 = Monday ... 6 = Sunday).
+  const leadingBlanks = (firstOfMonth.getDay() + 6) % 7;
+
+  const cells: (CalendarDay | null)[] = [
+    ...Array(leadingBlanks).fill(null),
+    ...Array.from({ length: daysInMonth }, (_, i) => ({
+      day: i + 1,
+      isoDate: `${year}-${String(month).padStart(2, '0')}-${String(
+        i + 1
+      ).padStart(2, '0')}`,
+    })),
+  ];
+
+  while (cells.length % 7 !== 0) {
+    cells.push(null);
+  }
+
+  const weeks: (CalendarDay | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) {
+    weeks.push(cells.slice(i, i + 7));
+  }
+
+  return {
+    label: `${MONTH_NAMES[month - 1]} ${year}`,
+    weekdayHeaders: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+    weeks,
+  };
+}

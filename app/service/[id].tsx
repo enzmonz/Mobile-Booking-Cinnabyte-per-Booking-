@@ -5,7 +5,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CustomButton from '@/components/CustomButton';
+import Header from '@/components/Header';
 import Colors from '@/constants/colors';
+import { FontFamily, Typography } from '@/constants/typography';
+import { Spacing, ScreenPadding } from '@/constants/spacing';
+import { Radius } from '@/constants/radius';
 import { fetchServiceById } from '@/data/api';
 
 export default function ServiceDetailsScreen() {
@@ -15,6 +19,7 @@ export default function ServiceDetailsScreen() {
   if (!service) {
     return (
       <SafeAreaView style={styles.safeArea}>
+        <Header title="Service" />
         <View style={styles.notFound}>
           <Text style={styles.notFoundText}>Service not found.</Text>
         </View>
@@ -24,42 +29,47 @@ export default function ServiceDetailsScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      <Header />
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={[styles.image, { backgroundColor: service.color }]}>
-          <Text style={styles.icon}>{service.icon}</Text>
+        <View style={styles.image}>
+          <Ionicons
+            name={service.icon as keyof typeof Ionicons.glyphMap}
+            size={64}
+            color={Colors.textMuted}
+          />
         </View>
 
+        <Text style={styles.eyebrow}>{service.eyebrow}</Text>
         <Text style={styles.name}>{service.name}</Text>
 
         <View style={styles.ratingRow}>
-          <Ionicons name="star" size={16} color={Colors.warning} />
+          <Ionicons name="star" size={14} color={Colors.accentDark} />
           <Text style={styles.ratingText}>{service.rating}</Text>
         </View>
 
         <Text style={styles.description}>{service.description}</Text>
 
+        <View style={styles.divider} />
+
         <View style={styles.priceDurationRow}>
           <Text style={styles.price}>₱{service.price}</Text>
-          <View style={styles.durationPill}>
-            <Ionicons name="time-outline" size={14} color={Colors.textSecondary} />
-            <Text style={styles.duration}>{service.duration}</Text>
-          </View>
+          <Text style={styles.duration}>{service.duration}</Text>
         </View>
 
-        <View style={styles.infoBlock}>
-          <Text style={styles.infoLabel}>Provider</Text>
-          <Text style={styles.infoValue}>{service.provider}</Text>
-        </View>
+        <View style={styles.divider} />
 
-        <View style={styles.infoBlock}>
-          <Text style={styles.infoLabel}>Location</Text>
-          <Text style={styles.infoValue}>{service.location}</Text>
-        </View>
+        <Text style={styles.label}>Provider</Text>
+        <Text style={styles.value}>{service.provider}</Text>
+
+        <Text style={[styles.label, styles.labelSpaced]}>Location</Text>
+        <Text style={styles.value}>{service.location}</Text>
+
+        <View style={styles.divider} />
       </ScrollView>
 
       <View style={styles.footer}>
         <CustomButton
-          title="Book Now"
+          title="Book appointment"
           onPress={() =>
             router.push({
               pathname: '/booking/date',
@@ -78,85 +88,78 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   content: {
-    padding: 20,
-    paddingBottom: 20,
+    paddingHorizontal: ScreenPadding,
+    paddingBottom: Spacing.xl,
   },
   image: {
-    height: 200,
-    borderRadius: 20,
+    height: 220,
+    borderRadius: Radius.card,
+    backgroundColor: Colors.surfaceMuted,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: Spacing.xxl,
   },
-  icon: {
-    fontSize: 72,
+  eyebrow: {
+    ...Typography.eyebrow,
+    color: Colors.textMuted,
   },
   name: {
-    fontSize: 26,
-    fontWeight: '800',
+    ...Typography.largeHeading,
+    fontSize: 28,
     color: Colors.text,
+    marginTop: Spacing.xs,
   },
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 6,
+    marginTop: Spacing.sm,
   },
   ratingText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontFamily: FontFamily.medium,
+    fontSize: 13,
     color: Colors.textSecondary,
   },
   description: {
-    fontSize: 15,
-    lineHeight: 22,
+    ...Typography.body,
     color: Colors.textSecondary,
-    marginTop: 14,
+    marginTop: Spacing.lg,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: Spacing.xxl,
   },
   priceDurationRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'baseline',
     justifyContent: 'space-between',
-    marginTop: 20,
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 16,
   },
   price: {
+    fontFamily: FontFamily.bold,
     fontSize: 24,
-    fontWeight: '800',
-    color: Colors.primary,
-  },
-  durationPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+    color: Colors.text,
   },
   duration: {
+    fontFamily: FontFamily.medium,
     fontSize: 14,
-    fontWeight: '600',
     color: Colors.textSecondary,
   },
-  infoBlock: {
-    marginTop: 18,
+  label: {
+    ...Typography.eyebrow,
+    color: Colors.textMuted,
   },
-  infoLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  labelSpaced: {
+    marginTop: Spacing.xl,
   },
-  infoValue: {
+  value: {
+    fontFamily: FontFamily.semibold,
     fontSize: 16,
-    fontWeight: '600',
     color: Colors.text,
     marginTop: 4,
   },
   footer: {
-    padding: 20,
+    padding: ScreenPadding,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     backgroundColor: Colors.background,
@@ -167,7 +170,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   notFoundText: {
-    fontSize: 16,
+    ...Typography.body,
     color: Colors.textSecondary,
   },
 });

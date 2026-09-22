@@ -2,6 +2,8 @@
 
 A mobile booking application built with React Native, TypeScript, and Expo Router. Customers can browse services, pick a date and time, confirm a booking, and manage their bookings — all backed by local mock data for now.
 
+Visual identity: a CINNABYTE-inspired editorial style — warm off-white background, restrained green accent, Inter typeface, thin borders, and generous whitespace instead of heavy cards/shadows.
+
 ## Tech Stack
 
 - React Native + Expo (SDK 57)
@@ -29,12 +31,22 @@ app/
   booking/         Booking flow: date → time → confirmation → success, plus booking details
   _layout.tsx       Root stack layout
 
-components/         Reusable UI pieces (ServiceCard, BookingCard, TimeSlot, etc.)
+components/         Reusable UI pieces (ServiceCard, BookingCard, TimeSlot, StatusBadge,
+                    ProgressSteps, EmptyState, Skeleton, ErrorState, Header, etc.)
 context/             BookingsContext — in-memory "database" of bookings for this session
 data/                Mock data + a thin api.ts layer shaped like future REST endpoints
 types/               Shared TypeScript interfaces
-constants/colors.ts  App-wide color palette
+constants/           Design tokens: colors.ts, spacing.ts, typography.ts, radius.ts
 ```
+
+## Design System
+
+All visual styling comes from `constants/` — no hardcoded colors or spacing in components/screens:
+
+- `colors.ts` — warm neutral palette (`#F5F4EF` background) with a restrained green accent, used sparingly for primary actions and selected states
+- `typography.ts` — Inter font family + a fixed type scale (large heading → metadata)
+- `spacing.ts` — an 8-point-based spacing scale plus a shared screen padding constant
+- `radius.ts` — restrained corner radii (16px cards, 12px buttons/inputs, pill for badges)
 
 ## Booking Flow
 

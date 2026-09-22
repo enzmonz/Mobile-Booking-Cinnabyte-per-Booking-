@@ -4,8 +4,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CustomButton from '@/components/CustomButton';
+import Header from '@/components/Header';
+import ProgressSteps from '@/components/ProgressSteps';
 import TimeSlot from '@/components/TimeSlot';
 import Colors from '@/constants/colors';
+import { Typography } from '@/constants/typography';
+import { Spacing, ScreenPadding } from '@/constants/spacing';
 import { fetchAvailableTimeSlots, formatIsoDateLong } from '@/data/api';
 
 export default function SelectTimeScreen() {
@@ -18,6 +22,9 @@ export default function SelectTimeScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      <Header title="Choose a time" />
+      <ProgressSteps currentStep={2} />
+
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>Available times</Text>
         <Text style={styles.subtitle}>{formatIsoDateLong(date)}</Text>
@@ -57,26 +64,28 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   content: {
-    padding: 20,
+    paddingHorizontal: ScreenPadding,
+    paddingBottom: Spacing.xl,
   },
   title: {
+    ...Typography.sectionHeading,
     fontSize: 24,
-    fontWeight: '800',
     color: Colors.text,
   },
   subtitle: {
+    ...Typography.body,
     fontSize: 14,
     color: Colors.textSecondary,
     marginTop: 4,
-    marginBottom: 20,
+    marginBottom: Spacing.xxl,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: Spacing.md,
   },
   footer: {
-    padding: 20,
+    padding: ScreenPadding,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     backgroundColor: Colors.background,

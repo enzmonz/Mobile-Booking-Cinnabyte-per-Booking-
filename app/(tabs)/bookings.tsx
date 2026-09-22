@@ -1,41 +1,48 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import BookingCard from '@/components/BookingCard';
+import EmptyState from '@/components/EmptyState';
 import Colors from '@/constants/colors';
+import { FontFamily, Typography } from '@/constants/typography';
+import { Spacing, ScreenPadding } from '@/constants/spacing';
 import { useBookings } from '@/context/BookingsContext';
-import { BookingStatus } from '@/types';
 
-const TABS: { key: BookingStatus; label: string }[] = [
+type TabKey = 'upcoming' | 'past';
+
+const TABS: { key: TabKey; label: string }[] = [
   { key: 'upcoming', label: 'Upcoming' },
-  { key: 'completed', label: 'Completed' },
-  { key: 'cancelled', label: 'Cancelled' },
+  { key: 'past', label: 'Past' },
 ];
 
 export default function BookingsScreen() {
   const { bookings } = useBookings();
-  const [activeTab, setActiveTab] = useState<BookingStatus>('upcoming');
+  const [activeTab, setActiveTab] = useState<TabKey>('upcoming');
 
   const filteredBookings = useMemo(
-    () => bookings.filter((booking) => booking.status === activeTab),
+    () =>
+      bookings.filter((booking) =>
+        activeTab === 'upcoming'
+          ? booking.status === 'upcoming'
+          : booking.status !== 'upcoming'
+      ),
     [bookings, activeTab]
   );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>My Bookings</Text>
+        <Text style={styles.title}>My bookings</Text>
       </View>
 
       <View style={styles.tabRow}>
         {TABS.map((tab) => (
-          <TouchableOpacity
+          <Pressable
             key={tab.key}
-            style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+            style={styles.tab}
             onPress={() => setActiveTab(tab.key)}
-            activeOpacity={0.8}
           >
             <Text
               style={[
@@ -45,7 +52,13 @@ export default function BookingsScreen() {
             >
               {tab.label}
             </Text>
-          </TouchableOpacity>
+            <View
+              style={[
+                styles.tabIndicator,
+                activeTab === tab.key && styles.tabIndicatorActive,
+              ]}
+            />
+          </Pressable>
         ))}
       </View>
 
@@ -53,7 +66,7 @@ export default function BookingsScreen() {
         data={filteredBookings}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ItemSeparatorComponent={() => <View style={{ height: Spacing.lg }} />}
         renderItem={({ item }) => (
           <BookingCard
             booking={item}
@@ -61,9 +74,21 @@ export default function BookingsScreen() {
           />
         )}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>
-            No {activeTab} bookings yet.
-          </Text>
+          activeTab === 'upcoming' ? (
+            <EmptyState
+              icon="calendar-outline"
+              title="No upcoming bookings"
+              description="When you book a service, your upcoming appointments will appear here."
+              actionLabel="Explore services"
+              onActionPress={() => router.push('/(tabs)/services')}
+            />
+          ) : (
+            <EmptyState
+              icon="time-outline"
+              title="No past bookings"
+              description="Completed and cancelled appointments will show up here."
+            />
+          )
         }
       />
     </SafeAreaView>
@@ -76,51 +101,47 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingHorizontal: ScreenPadding,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
+    ...Typography.largeHeading,
+    fontSize: 30,
     color: Colors.text,
   },
   tabRow: {
     flexDirection: 'row',
-    marginHorizontal: 20,
-    marginVertical: 16,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 4,
+    paddingHorizontal: ScreenPadding,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.lg,
+    gap: Spacing.xxl,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   tab: {
-    flex: 1,
-    height: 38,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 9,
-  },
-  tabActive: {
-    backgroundColor: Colors.primary,
+    paddingBottom: Spacing.md,
   },
   tabText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.textSecondary,
+    fontFamily: FontFamily.medium,
+    fontSize: 15,
+    color: Colors.textMuted,
   },
   tabTextActive: {
-    color: Colors.white,
+    fontFamily: FontFamily.semibold,
+    color: Colors.text,
+  },
+  tabIndicator: {
+    height: 2,
+    marginTop: Spacing.md,
+    backgroundColor: 'transparent',
+  },
+  tabIndicatorActive: {
+    backgroundColor: Colors.accentDark,
   },
   listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    paddingVertical: 40,
+    paddingHorizontal: ScreenPadding,
+    paddingBottom: Spacing.huge,
+    flexGrow: 1,
   },
 });
