@@ -1,23 +1,27 @@
 import React, { useMemo, useState } from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CategoryCard from '@/components/CategoryCard';
 import SearchBar from '@/components/SearchBar';
+import SectionHeader from '@/components/SectionHeader';
 import ServiceCard from '@/components/ServiceCard';
+import StatusBadge from '@/components/StatusBadge';
 import Colors from '@/constants/colors';
+import { FontFamily, Typography } from '@/constants/typography';
+import { Spacing, ScreenPadding } from '@/constants/spacing';
+import { Radius } from '@/constants/radius';
 import {
   fetchCategories,
-  fetchFeaturedServices,
   fetchPopularServices,
   fetchServicesBySearch,
+  formatRelativeDay,
 } from '@/data/api';
+import { useBookings } from '@/context/BookingsContext';
+
+const USER_FIRST_NAME = 'Enz';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -28,14 +32,19 @@ function getGreeting(): string {
 
 export default function HomeScreen() {
   const [query, setQuery] = useState('');
+  const { bookings } = useBookings();
 
   const categories = useMemo(() => fetchCategories(), []);
-  const featuredServices = useMemo(() => fetchFeaturedServices(), []);
   const popularServices = useMemo(() => fetchPopularServices(), []);
   const searchResults = useMemo(
     () => (query.trim() ? fetchServicesBySearch(query) : []),
     [query]
   );
+
+  const nextUpcoming = useMemo(() => {
+    const upcoming = bookings.filter((b) => b.status === 'upcoming');
+    return upcoming.length > 0 ? upcoming[upcoming.length - 1] : undefined;
+  }, [bookings]);
 
   const goToService = (id: string) => router.push(`/service/${id}`);
 
@@ -52,17 +61,18 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.appName}>BookIt</Text>
-        <Text style={styles.greeting}>{getGreeting()} 👋</Text>
-        <Text style={styles.subtitle}>What would you like to book?</Text>
+        <Text style={styles.greeting}>
+          {getGreeting()}, {USER_FIRST_NAME}
+        </Text>
+        <Text style={styles.headline}>
+          Find something worth{'\n'}making time for.
+        </Text>
 
         <SearchBar value={query} onChangeText={setQuery} />
 
         {query.trim() ? (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              Search Results ({searchResults.length})
-            </Text>
+            <SectionHeader title={`Results (${searchResults.length})`} />
             <View style={styles.listGap}>
               {searchResults.map((service) => (
                 <ServiceCard
@@ -81,12 +91,8 @@ export default function HomeScreen() {
         ) : (
           <>
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Categories</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.horizontalGap}
-              >
+              <SectionHeader title="Categories" rule />
+              <View style={styles.categoryGrid}>
                 {categories.map((category) => (
                   <CategoryCard
                     key={category.id}
@@ -94,29 +100,11 @@ export default function HomeScreen() {
                     onPress={() => goToCategory(category.id)}
                   />
                 ))}
-              </ScrollView>
+              </View>
             </View>
 
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Featured Services</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.horizontalGap}
-              >
-                {featuredServices.map((service) => (
-                  <ServiceCard
-                    key={service.id}
-                    service={service}
-                    variant="featured"
-                    onPress={() => goToService(service.id)}
-                  />
-                ))}
-              </ScrollView>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Popular Services</Text>
+              <SectionHeader title="Popular near you" rule />
               <View style={styles.listGap}>
                 {popularServices.map((service) => (
                   <ServiceCard
@@ -127,6 +115,49 @@ export default function HomeScreen() {
                 ))}
               </View>
             </View>
+
+            {nextUpcoming && (
+              <View style={styles.section}>
+                <SectionHeader title="Upcoming appointment" rule />
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.upcomingCard,
+                    pressed && styles.upcomingPressed,
+                  ]}
+                  onPress={() => router.push(`/booking/${nextUpcoming.id}`)}
+                >
+                  <View style={styles.upcomingRow}>
+                    <View style={styles.upcomingIcon}>
+                      <Ionicons
+                        name={
+                          nextUpcoming.serviceIcon as keyof typeof Ionicons.glyphMap
+                        }
+                        size={22}
+                        color={Colors.textMuted}
+                      />
+                    </View>
+                    <View style={styles.upcomingInfo}>
+                      <Text style={styles.upcomingName}>
+                        {nextUpcoming.serviceName}
+                      </Text>
+                      <Text style={styles.upcomingMeta}>
+                        {formatRelativeDay(nextUpcoming.date)} ·{' '}
+                        {nextUpcoming.time}
+                      </Text>
+                    </View>
+                    <StatusBadge status={nextUpcoming.status} />
+                  </View>
+                  <View style={styles.linkRow}>
+                    <Text style={styles.link}>View booking</Text>
+                    <Ionicons
+                      name="arrow-forward"
+                      size={14}
+                      color={Colors.accentDark}
+                    />
+                  </View>
+                </Pressable>
+              </View>
+            )}
           </>
         )}
       </ScrollView>
@@ -140,46 +171,88 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   content: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  appName: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: Colors.primary,
+    paddingHorizontal: ScreenPadding,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.huge,
   },
   greeting: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: Colors.text,
-    marginTop: 12,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: Colors.textSecondary,
-    marginTop: 4,
-    marginBottom: 16,
-  },
-  section: {
-    marginTop: 28,
-  },
-  sectionTitle: {
-    fontSize: 19,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 12,
-  },
-  horizontalGap: {
-    gap: 12,
-    paddingRight: 4,
-  },
-  listGap: {
-    gap: 12,
-  },
-  emptyText: {
+    fontFamily: FontFamily.medium,
     fontSize: 14,
     color: Colors.textSecondary,
+  },
+  headline: {
+    ...Typography.sectionHeading,
+    fontSize: 25,
+    color: Colors.text,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.xxl,
+  },
+  section: {
+    marginTop: Spacing.xxxl,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  listGap: {
+    gap: Spacing.lg,
+  },
+  emptyText: {
+    ...Typography.body,
+    color: Colors.textSecondary,
     textAlign: 'center',
-    paddingVertical: 20,
+    paddingVertical: Spacing.xxl,
+  },
+  upcomingCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+  },
+  upcomingPressed: {
+    opacity: 0.8,
+  },
+  upcomingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  upcomingIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: Radius.card - 4,
+    backgroundColor: Colors.surfaceMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  upcomingInfo: {
+    flex: 1,
+  },
+  upcomingName: {
+    fontFamily: FontFamily.semibold,
+    fontSize: 16,
+    color: Colors.text,
+  },
+  upcomingMeta: {
+    fontFamily: FontFamily.regular,
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  link: {
+    fontFamily: FontFamily.semibold,
+    fontSize: 13,
+    color: Colors.accentDark,
   },
 });

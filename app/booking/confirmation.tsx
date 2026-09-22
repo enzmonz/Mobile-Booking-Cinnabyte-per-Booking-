@@ -4,15 +4,19 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CustomButton from '@/components/CustomButton';
+import Header from '@/components/Header';
+import ProgressSteps from '@/components/ProgressSteps';
 import Colors from '@/constants/colors';
+import { FontFamily, Typography } from '@/constants/typography';
+import { Spacing, ScreenPadding } from '@/constants/spacing';
 import { fetchServiceById, formatIsoDateLong } from '@/data/api';
 import { useBookings } from '@/context/BookingsContext';
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
+function DetailField({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <Text style={styles.fieldValue}>{value}</Text>
     </View>
   );
 }
@@ -30,6 +34,7 @@ export default function ConfirmationScreen() {
   if (!service) {
     return (
       <SafeAreaView style={styles.safeArea}>
+        <Header title="Confirm" />
         <View style={styles.notFound}>
           <Text style={styles.notFoundText}>Service not found.</Text>
         </View>
@@ -48,26 +53,27 @@ export default function ConfirmationScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Confirm Booking</Text>
+      <Header title="Confirm" />
+      <ProgressSteps currentStep={3} />
 
-        <View style={styles.card}>
-          <SummaryRow label="Service" value={service.name} />
-          <SummaryRow label="Provider" value={service.provider} />
-          <SummaryRow label="Date" value={formatIsoDateLong(date)} />
-          <SummaryRow label="Time" value={time} />
-          <SummaryRow label="Duration" value={service.duration} />
-          <View style={styles.divider} />
-          <View style={styles.row}>
-            <Text style={styles.rowLabel}>Price</Text>
-            <Text style={styles.price}>₱{service.price}</Text>
-          </View>
-        </View>
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.title}>Review booking</Text>
+
+        <DetailField label="Service" value={service.name} />
+        <DetailField label="Provider" value={service.provider} />
+        <DetailField label="Date" value={formatIsoDateLong(date)} />
+        <DetailField label="Time" value={time} />
+        <DetailField label="Duration" value={service.duration} />
+
+        <View style={styles.divider} />
+
+        <Text style={styles.fieldLabel}>Total</Text>
+        <Text style={styles.total}>₱{service.price}</Text>
       </ScrollView>
 
       <View style={styles.footer}>
         <CustomButton
-          title="Confirm Booking"
+          title="Confirm booking"
           loading={submitting}
           onPress={handleConfirm}
         />
@@ -82,48 +88,41 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   content: {
-    padding: 20,
+    paddingHorizontal: ScreenPadding,
+    paddingBottom: Spacing.xl,
   },
   title: {
+    ...Typography.sectionHeading,
     fontSize: 24,
-    fontWeight: '800',
     color: Colors.text,
-    marginBottom: 20,
+    marginBottom: Spacing.xxl,
   },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: 18,
+  field: {
+    marginBottom: Spacing.xl,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
+  fieldLabel: {
+    ...Typography.eyebrow,
+    color: Colors.textMuted,
   },
-  rowLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  rowValue: {
-    fontSize: 15,
-    fontWeight: '600',
+  fieldValue: {
+    fontFamily: FontFamily.semibold,
+    fontSize: 17,
     color: Colors.text,
+    marginTop: 4,
   },
   divider: {
     height: 1,
     backgroundColor: Colors.border,
-    marginVertical: 6,
+    marginVertical: Spacing.md,
   },
-  price: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: Colors.primary,
+  total: {
+    fontFamily: FontFamily.bold,
+    fontSize: 28,
+    color: Colors.text,
+    marginTop: 4,
   },
   footer: {
-    padding: 20,
+    padding: ScreenPadding,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     backgroundColor: Colors.background,
@@ -134,7 +133,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   notFoundText: {
-    fontSize: 16,
+    ...Typography.body,
     color: Colors.textSecondary,
   },
 });

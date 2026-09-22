@@ -1,8 +1,13 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import Colors from '@/constants/colors';
-import { formatIsoDateLong } from '@/data/api';
+import { FontFamily } from '@/constants/typography';
+import { Radius } from '@/constants/radius';
+import { Spacing } from '@/constants/spacing';
+import StatusBadge from '@/components/StatusBadge';
+import { formatIsoDateShort } from '@/data/api';
 import { Booking } from '@/types';
 
 interface BookingCardProps {
@@ -10,96 +15,77 @@ interface BookingCardProps {
   onPress: () => void;
 }
 
-const STATUS_STYLES: Record<
-  Booking['status'],
-  { label: string; bg: string; color: string }
-> = {
-  upcoming: { label: 'Confirmed', bg: Colors.primaryLight, color: Colors.primary },
-  completed: { label: 'Completed', bg: Colors.successLight, color: Colors.success },
-  cancelled: { label: 'Cancelled', bg: Colors.errorLight, color: Colors.error },
-};
-
 export default function BookingCard({ booking, onPress }: BookingCardProps) {
-  const status = STATUS_STYLES[booking.status];
-
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
-      <View style={[styles.image, { backgroundColor: booking.serviceColor }]}>
-        <Text style={styles.icon}>{booking.serviceIcon}</Text>
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      onPress={onPress}
+    >
+      <StatusBadge status={booking.status} />
+
+      <Text style={styles.name}>{booking.serviceName}</Text>
+      <Text style={styles.provider}>{booking.provider}</Text>
+
+      <Text style={styles.dateTime}>
+        {formatIsoDateShort(booking.date)} · {booking.time}
+      </Text>
+      <Text style={styles.price}>₱{booking.price}</Text>
+
+      <View style={styles.linkRow}>
+        <Text style={styles.link}>View details</Text>
+        <Ionicons name="arrow-forward" size={14} color={Colors.accentDark} />
       </View>
-      <View style={styles.content}>
-        <Text style={styles.name}>{booking.serviceName}</Text>
-        <Text style={styles.detail}>{formatIsoDateLong(booking.date)}</Text>
-        <Text style={styles.detail}>{booking.time}</Text>
-        <View style={styles.footerRow}>
-          <Text style={styles.price}>₱{booking.price}</Text>
-          <View style={[styles.badge, { backgroundColor: status.bg }]}>
-            <Text style={[styles.badgeText, { color: status.color }]}>
-              {status.label}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
     backgroundColor: Colors.surface,
-    borderRadius: 18,
-    padding: 14,
+    borderRadius: Radius.card,
     borderWidth: 1,
     borderColor: Colors.border,
-    gap: 14,
-    shadowColor: Colors.black,
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    padding: Spacing.lg,
   },
-  image: {
-    width: 64,
-    height: 64,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  icon: {
-    fontSize: 28,
-  },
-  content: {
-    flex: 1,
+  pressed: {
+    opacity: 0.8,
   },
   name: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontFamily: FontFamily.semibold,
+    fontSize: 17,
     color: Colors.text,
+    marginTop: Spacing.md,
   },
-  detail: {
+  provider: {
+    fontFamily: FontFamily.regular,
     fontSize: 13,
     color: Colors.textSecondary,
     marginTop: 2,
   },
-  footerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 8,
+  dateTime: {
+    fontFamily: FontFamily.medium,
+    fontSize: 13,
+    color: Colors.text,
+    marginTop: Spacing.md,
   },
   price: {
+    fontFamily: FontFamily.semibold,
     fontSize: 15,
-    fontWeight: '700',
     color: Colors.text,
+    marginTop: 4,
   },
-  badge: {
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
   },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: '700',
+  link: {
+    fontFamily: FontFamily.semibold,
+    fontSize: 13,
+    color: Colors.accentDark,
   },
 });

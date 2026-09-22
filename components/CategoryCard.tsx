@@ -1,7 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import Colors from '@/constants/colors';
+import { FontFamily } from '@/constants/typography';
+import { Radius } from '@/constants/radius';
 import { Category } from '@/types';
 
 interface CategoryCardProps {
@@ -16,44 +19,52 @@ export default function CategoryCard({
   onPress,
 }: CategoryCardProps) {
   return (
-    <TouchableOpacity
-      style={[styles.container, selected && styles.selectedContainer]}
+    <Pressable
+      style={({ pressed }) => [
+        styles.pill,
+        selected && styles.pillSelected,
+        pressed && styles.pillPressed,
+      ]}
       onPress={onPress}
-      activeOpacity={0.8}
     >
-      <Text style={styles.icon}>{category.icon}</Text>
-      <Text style={[styles.label, selected && styles.selectedLabel]}>
+      <Ionicons
+        name={category.icon as keyof typeof Ionicons.glyphMap}
+        size={16}
+        color={selected ? Colors.onAccent : Colors.textSecondary}
+      />
+      <Text style={[styles.label, selected && styles.labelSelected]}>
         {category.name}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  pill: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 7,
+    height: 40,
+    paddingHorizontal: 16,
+    borderRadius: Radius.pill,
     backgroundColor: Colors.surface,
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
     borderWidth: 1,
     borderColor: Colors.border,
-    gap: 6,
   },
-  selectedContainer: {
-    backgroundColor: Colors.primaryLight,
-    borderColor: Colors.primary,
+  pillSelected: {
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
   },
-  icon: {
-    fontSize: 24,
+  pillPressed: {
+    opacity: 0.75,
   },
   label: {
+    fontFamily: FontFamily.medium,
     fontSize: 13,
-    fontWeight: '600',
     color: Colors.text,
   },
-  selectedLabel: {
-    color: Colors.primary,
+  labelSelected: {
+    color: Colors.onAccent,
+    fontFamily: FontFamily.semibold,
   },
 });

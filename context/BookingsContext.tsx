@@ -36,7 +36,6 @@ export function BookingsProvider({ children }: { children: React.ReactNode }) {
       serviceId: service.id,
       serviceName: service.name,
       serviceIcon: service.icon,
-      serviceColor: service.color,
       provider: service.provider,
       location: service.location,
       price: service.price,

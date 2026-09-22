@@ -1,64 +1,53 @@
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Colors from '@/constants/colors';
+import { FontFamily, Typography } from '@/constants/typography';
+import { Spacing, ScreenPadding } from '@/constants/spacing';
 
 const MOCK_USER = {
   name: 'Enz Monz',
   email: 'enz.monz@email.com',
 };
 
-interface MenuItemProps {
+interface RowProps {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress: () => void;
   destructive?: boolean;
-  isLast?: boolean;
 }
 
-function MenuItem({
-  icon,
-  label,
-  onPress,
-  destructive = false,
-  isLast = false,
-}: MenuItemProps) {
+function Row({ icon, label, onPress, destructive = false }: RowProps) {
   return (
-    <TouchableOpacity
-      style={[styles.menuItem, isLast && styles.menuItemNoBorder]}
+    <Pressable
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       onPress={onPress}
-      activeOpacity={0.7}
     >
-      <View style={styles.menuItemLeft}>
+      <View style={styles.rowLeft}>
         <Ionicons
           name={icon}
-          size={20}
-          color={destructive ? Colors.error : Colors.text}
+          size={19}
+          color={destructive ? Colors.error : Colors.textSecondary}
         />
-        <Text style={[styles.menuLabel, destructive && styles.menuLabelDestructive]}>
+        <Text style={[styles.rowLabel, destructive && styles.rowLabelDanger]}>
           {label}
         </Text>
       </View>
       {!destructive && (
-        <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
+        <Ionicons name="chevron-forward" size={17} color={Colors.textMuted} />
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
 export default function ProfileScreen() {
-  const initials = MOCK_USER.name
-    .split(' ')
-    .map((part) => part[0])
-    .join('');
-
   const handleLogOut = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
+    Alert.alert('Log out', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Log Out', style: 'destructive', onPress: () => {} },
+      { text: 'Log out', style: 'destructive', onPress: () => {} },
     ]);
   };
 
@@ -67,42 +56,35 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>Profile</Text>
 
-        <View style={styles.avatarSection}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
-          </View>
-          <Text style={styles.name}>{MOCK_USER.name}</Text>
-          <Text style={styles.email}>{MOCK_USER.email}</Text>
-        </View>
+        <Text style={styles.name}>{MOCK_USER.name}</Text>
+        <Text style={styles.email}>{MOCK_USER.email}</Text>
 
-        <View style={styles.menuGroup}>
-          <MenuItem
-            icon="calendar-outline"
-            label="My Bookings"
-            onPress={() => router.push('/(tabs)/bookings')}
-          />
-          <MenuItem
-            icon="settings-outline"
-            label="Settings"
-            onPress={() => Alert.alert('Settings', 'Coming soon!')}
-          />
-          <MenuItem
-            icon="notifications-outline"
-            label="Notifications"
-            onPress={() => Alert.alert('Notifications', 'Coming soon!')}
-            isLast
-          />
-        </View>
+        <View style={styles.divider} />
 
-        <View style={styles.menuGroup}>
-          <MenuItem
-            icon="log-out-outline"
-            label="Log Out"
-            onPress={handleLogOut}
-            destructive
-            isLast
-          />
-        </View>
+        <Row
+          icon="calendar-outline"
+          label="Bookings"
+          onPress={() => router.push('/(tabs)/bookings')}
+        />
+        <Row
+          icon="notifications-outline"
+          label="Notifications"
+          onPress={() => Alert.alert('Notifications', 'Coming soon.')}
+        />
+        <Row
+          icon="settings-outline"
+          label="Settings"
+          onPress={() => Alert.alert('Settings', 'Coming soon.')}
+        />
+
+        <View style={styles.divider} />
+
+        <Row
+          icon="log-out-outline"
+          label="Log out"
+          onPress={handleLogOut}
+          destructive
+        />
       </ScrollView>
     </SafeAreaView>
   );
@@ -114,79 +96,52 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   content: {
-    padding: 20,
-    paddingBottom: 40,
+    paddingHorizontal: ScreenPadding,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.huge,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
+    ...Typography.largeHeading,
+    fontSize: 30,
     color: Colors.text,
-    marginBottom: 20,
-  },
-  avatarSection: {
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    paddingVertical: 28,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: 20,
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  avatarText: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: Colors.primary,
+    marginBottom: Spacing.xxxl,
   },
   name: {
+    fontFamily: FontFamily.semibold,
     fontSize: 19,
-    fontWeight: '700',
     color: Colors.text,
   },
   email: {
+    fontFamily: FontFamily.regular,
     fontSize: 14,
     color: Colors.textSecondary,
     marginTop: 2,
   },
-  menuGroup: {
-    backgroundColor: Colors.surface,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginBottom: 16,
-    overflow: 'hidden',
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: Spacing.xxl,
   },
-  menuItem: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    paddingVertical: Spacing.lg,
   },
-  menuItemNoBorder: {
-    borderBottomWidth: 0,
+  rowPressed: {
+    opacity: 0.6,
   },
-  menuItemLeft: {
+  rowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: Spacing.md,
   },
-  menuLabel: {
+  rowLabel: {
+    fontFamily: FontFamily.medium,
     fontSize: 15,
-    fontWeight: '600',
     color: Colors.text,
   },
-  menuLabelDestructive: {
+  rowLabelDanger: {
     color: Colors.error,
   },
 });

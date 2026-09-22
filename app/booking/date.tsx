@@ -1,58 +1,100 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import CustomButton from '@/components/CustomButton';
+import Header from '@/components/Header';
+import ProgressSteps from '@/components/ProgressSteps';
 import Colors from '@/constants/colors';
-import { fetchAvailableDates, fetchServiceById } from '@/data/api';
+import { FontFamily, Typography } from '@/constants/typography';
+import { Spacing, ScreenPadding } from '@/constants/spacing';
+import { fetchAvailableDates, fetchCalendarMonth, fetchServiceById } from '@/data/api';
 
 export default function SelectDateScreen() {
   const { serviceId } = useLocalSearchParams<{ serviceId: string }>();
   const service = fetchServiceById(serviceId);
-  const dates = useMemo(() => fetchAvailableDates(), []);
+  const { width } = useWindowDimensions();
+
+  const availableDates = useMemo(() => fetchAvailableDates(), []);
+  const availableSet = useMemo(
+    () => new Set(availableDates.map((d) => d.isoDate)),
+    [availableDates]
+  );
+  const calendar = useMemo(
+    () => fetchCalendarMonth(availableDates[0]?.isoDate ?? ''),
+    [availableDates]
+  );
+
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  const cellSize = Math.min(
+    48,
+    Math.floor((width - ScreenPadding * 2 - Spacing.sm * 6) / 7)
+  );
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+      <Header title="Choose a date" />
+      <ProgressSteps currentStep={1} />
+
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>Choose a date</Text>
-        {service && (
-          <Text style={styles.subtitle}>for {service.name}</Text>
-        )}
+        {service && <Text style={styles.subtitle}>for {service.name}</Text>}
 
-        <View style={styles.dateList}>
-          {dates.map((date) => {
-            const selected = selectedDate === date.isoDate;
-            return (
-              <TouchableOpacity
-                key={date.isoDate}
-                style={[styles.dateRow, selected && styles.dateRowSelected]}
-                onPress={() => setSelectedDate(date.isoDate)}
-                activeOpacity={0.8}
-              >
-                <View>
-                  <Text
-                    style={[styles.dateLabel, selected && styles.dateLabelSelected]}
-                  >
-                    {date.label}
-                  </Text>
+        <Text style={styles.monthLabel}>{calendar.label}</Text>
+
+        <View style={styles.weekdayRow}>
+          {calendar.weekdayHeaders.map((label, index) => (
+            <View key={`${label}-${index}`} style={{ width: cellSize }}>
+              <Text style={styles.weekdayText}>{label}</Text>
+            </View>
+          ))}
+        </View>
+
+        {calendar.weeks.map((week, weekIndex) => (
+          <View style={styles.weekRow} key={weekIndex}>
+            {week.map((cell, cellIndex) => {
+              if (!cell) {
+                return <View key={cellIndex} style={{ width: cellSize }} />;
+              }
+
+              const isAvailable = availableSet.has(cell.isoDate);
+              const isSelected = selectedDate === cell.isoDate;
+
+              return (
+                <Pressable
+                  key={cell.isoDate}
+                  disabled={!isAvailable}
+                  onPress={() => setSelectedDate(cell.isoDate)}
+                  style={({ pressed }) => [
+                    styles.dayCell,
+                    { width: cellSize, height: cellSize },
+                    isSelected && styles.dayCellSelected,
+                    pressed && isAvailable && styles.dayCellPressed,
+                  ]}
+                >
                   <Text
                     style={[
-                      styles.dateWeekday,
-                      selected && styles.dateWeekdaySelected,
+                      styles.dayText,
+                      !isAvailable && styles.dayTextDisabled,
+                      isSelected && styles.dayTextSelected,
                     ]}
                   >
-                    {date.weekday}
+                    {cell.day}
                   </Text>
-                </View>
-                <View
-                  style={[styles.radio, selected && styles.radioSelected]}
-                />
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        ))}
       </ScrollView>
 
       <View style={styles.footer}>
@@ -77,65 +119,69 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   content: {
-    padding: 20,
+    paddingHorizontal: ScreenPadding,
+    paddingBottom: Spacing.xl,
   },
   title: {
+    ...Typography.sectionHeading,
     fontSize: 24,
-    fontWeight: '800',
     color: Colors.text,
   },
   subtitle: {
+    ...Typography.body,
     fontSize: 14,
     color: Colors.textSecondary,
     marginTop: 4,
-    marginBottom: 20,
+    marginBottom: Spacing.xxl,
   },
-  dateList: {
-    gap: 12,
+  monthLabel: {
+    fontFamily: FontFamily.semibold,
+    fontSize: 15,
+    color: Colors.text,
+    marginBottom: Spacing.lg,
   },
-  dateRow: {
+  weekdayRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    padding: 16,
+    marginBottom: Spacing.sm,
   },
-  dateRowSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryLight,
+  weekdayText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 12,
+    color: Colors.textMuted,
+    textAlign: 'center',
   },
-  dateLabel: {
-    fontSize: 16,
-    fontWeight: '700',
+  weekRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+  },
+  dayCell: {
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dayCellSelected: {
+    backgroundColor: Colors.accent,
+  },
+  dayCellPressed: {
+    backgroundColor: Colors.surfaceMuted,
+  },
+  dayText: {
+    fontFamily: FontFamily.medium,
+    fontSize: 14.5,
     color: Colors.text,
   },
-  dateLabelSelected: {
-    color: Colors.primary,
+  dayTextDisabled: {
+    color: Colors.textMuted,
+    opacity: 0.4,
   },
-  dateWeekday: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  dateWeekdaySelected: {
-    color: Colors.primary,
-  },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: Colors.border,
-  },
-  radioSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primary,
+  dayTextSelected: {
+    fontFamily: FontFamily.semibold,
+    color: Colors.onAccent,
   },
   footer: {
-    padding: 20,
+    padding: ScreenPadding,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     backgroundColor: Colors.background,

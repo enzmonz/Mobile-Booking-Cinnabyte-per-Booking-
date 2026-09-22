@@ -1,11 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import CategoryCard from '@/components/CategoryCard';
+import EmptyState from '@/components/EmptyState';
 import ServiceCard from '@/components/ServiceCard';
 import Colors from '@/constants/colors';
+import { Typography } from '@/constants/typography';
+import { Spacing, ScreenPadding } from '@/constants/spacing';
 import { fetchCategories, fetchServices } from '@/data/api';
+
+const ALL_CATEGORY = { id: 'all', name: 'All', icon: 'apps-outline' };
 
 export default function ServicesScreen() {
   const params = useLocalSearchParams<{ category?: string }>();
@@ -26,34 +32,22 @@ export default function ServicesScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Services</Text>
+        <Text style={styles.title}>Explore</Text>
       </View>
 
       <FlatList
         horizontal
-        data={[{ id: 'all', name: 'All', icon: '✨' }, ...categories]}
+        data={[ALL_CATEGORY, ...categories]}
         keyExtractor={(item) => item.id}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chipRow}
         style={styles.chipList}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.chip,
-              selectedCategory === item.id && styles.chipSelected,
-            ]}
+          <CategoryCard
+            category={item}
+            selected={selectedCategory === item.id}
             onPress={() => setSelectedCategory(item.id)}
-            activeOpacity={0.8}
-          >
-            <Text
-              style={[
-                styles.chipText,
-                selectedCategory === item.id && styles.chipTextSelected,
-              ]}
-            >
-              {item.icon} {item.name}
-            </Text>
-          </TouchableOpacity>
+          />
         )}
       />
 
@@ -61,7 +55,7 @@ export default function ServicesScreen() {
         data={filteredServices}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        ItemSeparatorComponent={() => <View style={{ height: Spacing.lg }} />}
         renderItem={({ item }) => (
           <ServiceCard
             service={item}
@@ -69,7 +63,11 @@ export default function ServicesScreen() {
           />
         )}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>No services in this category.</Text>
+          <EmptyState
+            icon="search-outline"
+            title="No services here yet"
+            description="Try a different category to find what you're looking for."
+          />
         }
       />
     </SafeAreaView>
@@ -82,53 +80,25 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingHorizontal: ScreenPadding,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '800',
+    ...Typography.largeHeading,
+    fontSize: 30,
     color: Colors.text,
   },
   chipList: {
     flexGrow: 0,
   },
   chipRow: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    gap: 10,
-  },
-  chip: {
-    paddingHorizontal: 16,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  chipSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  chipTextSelected: {
-    color: Colors.white,
+    paddingHorizontal: ScreenPadding,
+    paddingVertical: Spacing.lg,
+    gap: Spacing.sm,
   },
   listContent: {
-    padding: 20,
-    paddingTop: 4,
-  },
-  emptyText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    paddingVertical: 40,
+    padding: ScreenPadding,
+    paddingTop: Spacing.xs,
   },
 });
